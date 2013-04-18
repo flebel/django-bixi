@@ -5,6 +5,8 @@ from models import City, Station, Update
 class CityAdmin(admin.ModelAdmin):
     fields = ('name', 'code', 'url',)
     list_display = ('name', 'code', 'url', 'last_update',)
+    search_fields = ('name', 'code',)
+
 admin.site.register(City, CityAdmin)
 
 class StationAdmin(admin.ModelAdmin):
@@ -13,6 +15,7 @@ class StationAdmin(admin.ModelAdmin):
     list_filter = ('city', 'installed', 'locked',)
     readonly_fields = ('city', 'public_id', 'name', 'last_comm_with_server',
         'lat', 'long', 'installed', 'locked',)
+    search_fields = ('name',)
 
     def has_add_permission(self, request):
         return False
@@ -28,6 +31,7 @@ class UpdateAdmin(admin.ModelAdmin):
     list_filter = ('station__city__name',)
     readonly_fields = ('station', 'nb_bikes', 'nb_empty_docks',
         'latest_update_time',)
+    search_fields = ('station__name',)
 
     def has_add_permission(self, request):
         return False
