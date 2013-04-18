@@ -34,7 +34,7 @@ class Update(models.Model):
     station = models.ForeignKey(Station)
     nb_bikes = models.IntegerField()
     nb_empty_docks = models.IntegerField()
-    latest_update_time = models.DateTimeField()
+    latest_update_time = models.DateTimeField(null=True)
 
     class Meta:
         get_latest_by = 'latest_update_time'
