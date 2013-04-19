@@ -3,7 +3,8 @@ from datetime import datetime
 import urllib2
 
 from django.core.management.base import BaseCommand, CommandError
-from django_bixi.models import City, Station, Update
+
+from bixi.models import City, Station, Update
 
 
 class Command(BaseCommand):
