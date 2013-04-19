@@ -1,0 +1,6 @@
+# ATTENTION!
+# Use "pip install -r /path/to/requirements.txt" to install the dependencies.
+# Use virtualenv for better results ;-)
+
+django-tastypie==0.9.14
+
