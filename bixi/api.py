@@ -12,6 +12,7 @@ class StationResource(ModelResource):
 
     class Meta:
         allowed_methods = ['get']
+        excludes = ['public_id']
         queryset = Station.objects.all()
         resource_name = 'station'
 
