@@ -18,11 +18,16 @@ class Station(models.Model):
     city = models.ForeignKey(City)
     public_id = models.IntegerField()
     name = models.CharField(max_length=200)
+    terminal_name = models.CharField(max_length=10)
     last_comm_with_server = models.DateTimeField()
     lat = models.FloatField()
     long = models.FloatField()
     installed = models.BooleanField()
     locked = models.BooleanField()
+    install_date = models.DateTimeField(null=True)
+    removal_date = models.DateTimeField(null=True)
+    temporary = models.BooleanField()
+    public = models.BooleanField()
 
     class Meta:
         get_latest_by = 'last_comm_with_server'

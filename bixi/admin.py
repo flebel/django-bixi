@@ -11,10 +11,11 @@ admin.site.register(City, CityAdmin)
 
 class StationAdmin(admin.ModelAdmin):
     list_display = ('city', 'name', 'last_comm_with_server', 'installed',
-        'locked',)
-    list_filter = ('city', 'installed', 'locked',)
-    readonly_fields = ('city', 'public_id', 'name', 'last_comm_with_server',
-        'lat', 'long', 'installed', 'locked',)
+        'locked', 'temporary', 'public')
+    list_filter = ('city', 'installed', 'locked', 'temporary', 'public')
+    readonly_fields = ('city', 'public_id', 'name', 'terminal_name',
+        'last_comm_with_server', 'lat', 'long', 'installed', 'locked',
+        'install_date', 'removal_date', 'temporary', 'public',)
     search_fields = ('name',)
 
     def has_add_permission(self, request):
