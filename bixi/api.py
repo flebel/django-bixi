@@ -1,7 +1,13 @@
 from tastypie.resources import ModelResource
 
-from models import Station, Update
+from models import City, Station, Update
 
+
+class CityResource(ModelResource):
+    class Meta:
+        allowed_methods = ['get']
+        queryset = City.objects.all()
+        resource_name = 'city'
 
 class StationResource(ModelResource):
     def dehydrate(self, bundle):
