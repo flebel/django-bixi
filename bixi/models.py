@@ -14,6 +14,11 @@ class City(models.Model):
     def __unicode__(self):
         return self.name
 
+class AvailableManager(models.Manager):
+    def get_query_set(self):
+        return super(AvailableManager, self).get_query_set().filter(
+            installed=True, locked=False)
+
 class Station(models.Model):
     city = models.ForeignKey(City)
     public_id = models.IntegerField()
@@ -28,6 +33,9 @@ class Station(models.Model):
     removal_date = models.DateTimeField(null=True)
     temporary = models.BooleanField()
     public = models.BooleanField()
+
+    objects = models.Manager()
+    available = AvailableManager()
 
     class Meta:
         get_latest_by = 'last_comm_with_server'
