@@ -1,4 +1,4 @@
-Django app for managing the Bixi public bicycle sharing system's data from within Django projects.
+Django app for managing data from the Bixi public bicycle sharing system.
 
 It supports multiple cities out of the box.
 
