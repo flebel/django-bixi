@@ -1,4 +1,7 @@
+from django.conf import settings
+
 from tastypie.resources import ModelResource
+from tastypie.throttle import CacheThrottle
 
 from models import City, Station, Update
 
@@ -8,6 +11,11 @@ class CityResource(ModelResource):
         allowed_methods = ['get']
         queryset = City.objects.all()
         resource_name = 'city'
+        throttle = CacheThrottle(
+            throttle_at=settings.BIXI_THROTTLE_AT,
+            timeframe=settings.BIXI_TIMEFRAME,
+            expiration=settings.BIXI_EXPIRATION
+        )
 
 class StationResource(ModelResource):
     def dehydrate(self, bundle):
@@ -21,4 +29,9 @@ class StationResource(ModelResource):
         excludes = ['public_id', 'terminal_name']
         queryset = Station.available.all()
         resource_name = 'station'
+        throttle = CacheThrottle(
+            throttle_at=settings.BIXI_THROTTLE_AT,
+            timeframe=settings.BIXI_TIMEFRAME,
+            expiration=settings.BIXI_EXPIRATION
+        )
 

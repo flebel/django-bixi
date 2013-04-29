@@ -15,6 +15,17 @@ installed by running the following (from within a virtual environment)::
 
     pip install -r requirements.txt
 
+Configuration
+-------------
+
+django-bixi ships with throttling built in. The following options have to be
+set in your project's settings.py, as per the documentation:
+http://django-tastypie.readthedocs.org/en/latest/throttling.html#throttle-options
+
+* BIXI_THROTTLE_AT
+* BIXI_TIMEFRAME
+* BIXI_EXPIRATION
+
 How to use
 ----------
 
