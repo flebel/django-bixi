@@ -25,8 +25,8 @@ class Command(BaseCommand):
             stations = root.findall('station')
             for s in stations:
                 public_id = int(s.find('id').text)
-                last_comm_with_server = datetime.fromtimestamp(int(
-                    s.find('lastCommWithServer').text) / 1e3)
+                last_comm_with_server = Command.timestampToDateTime(
+                    s.find('lastCommWithServer').text)
                 try:
                     station = Station.objects.get(city=city,
                         public_id=public_id)
@@ -73,8 +73,7 @@ class Command(BaseCommand):
                     nb_empty_docks=nb_empty_docks,
                     latest_update_time=latest_update_time)
 
-            last_update = datetime.fromtimestamp(
-                int(root.attrib['lastUpdate']) / 1e3)
+            last_update = Command.timestampToDateTime(root.attrib['lastUpdate'])
             city.last_update = last_update
             city.save()
 
