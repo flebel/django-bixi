@@ -12,6 +12,9 @@ class Command(BaseCommand):
     help = 'Updates the current bike and dock counts for a given list of cities.'
 
     def handle(self, *args, **options):
+        if not args:
+            raise CommandError('At least one city_code must be given.')
+
         for city_code in args:
             try:
                 city = City.objects.get(code=city_code)
