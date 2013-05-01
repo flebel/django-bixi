@@ -25,6 +25,10 @@ class Command(BaseCommand):
             tree = ElementTree.parse(xml)
             root = tree.getroot()
 
+            created = 0
+            updated = 0
+            statusquo = 0
+
             stations = root.findall('station')
             for s in stations:
                 public_id = int(s.find('id').text)
@@ -34,9 +38,11 @@ class Command(BaseCommand):
                     station = Station.objects.get(city=city,
                         public_id=public_id)
                     if station.last_comm_with_server == last_comm_with_server:
+                        statusquo = statusquo + 1
                         self.progress('.')
                         continue
                     else:
+                        updated = updated + 1
                         self.progress('u')
                 except Station.DoesNotExist:
                     name = s.find('name').text
@@ -46,6 +52,7 @@ class Command(BaseCommand):
                     station.public_id = public_id
                     station.name = name
                     station.terminal_name = terminal_name
+                    created = created + 1
                     self.progress('c')
                 lat = float(s.find('lat').text)
                 long = float(s.find('long').text)
@@ -86,6 +93,9 @@ class Command(BaseCommand):
 
             self.stdout.write('\nSuccessfully updated bike and dock counts for ' +
                 '%s.' % city.name)
+            self.stdout.write('Created: %s' % created)
+            self.stdout.write('Updated: %s' % updated)
+            self.stdout.write('Status quo: %s' % statusquo)
 
     @staticmethod
     def timestampToDateTime(timestamp):
