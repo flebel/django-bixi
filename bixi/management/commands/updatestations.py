@@ -11,6 +11,12 @@ class Command(BaseCommand):
     args = '<city_code city_code ...>'
     help = 'Updates the current bike and dock counts for a given list of cities.'
 
+    @staticmethod
+    def timestampToDateTime(timestamp):
+        if timestamp:
+            return datetime.fromtimestamp(int(timestamp) / 1e3)
+        return None
+
     def handle(self, *args, **options):
         if not args:
             raise CommandError('At least one city_code must be given.')
@@ -96,12 +102,6 @@ class Command(BaseCommand):
             self.stdout.write('Created: %s' % created)
             self.stdout.write('Updated: %s' % updated)
             self.stdout.write('Status quo: %s' % statusquo)
-
-    @staticmethod
-    def timestampToDateTime(timestamp):
-        if timestamp:
-            return datetime.fromtimestamp(int(timestamp) / 1e3)
-        return None
 
     def progress(self, str):
         self.stdout.write(str, ending='')
