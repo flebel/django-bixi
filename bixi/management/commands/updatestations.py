@@ -34,7 +34,10 @@ class Command(BaseCommand):
                     station = Station.objects.get(city=city,
                         public_id=public_id)
                     if station.last_comm_with_server == last_comm_with_server:
+                        self.progress('.')
                         continue
+                    else:
+                        self.progress('u')
                 except Station.DoesNotExist:
                     name = s.find('name').text
                     terminal_name = s.find('terminalName').text
@@ -43,6 +46,7 @@ class Command(BaseCommand):
                     station.public_id = public_id
                     station.name = name
                     station.terminal_name = terminal_name
+                    self.progress('c')
                 lat = float(s.find('lat').text)
                 long = float(s.find('long').text)
                 installed = s.find('installed').text == 'true'
@@ -80,7 +84,7 @@ class Command(BaseCommand):
             city.last_update = last_update
             city.save()
 
-            self.stdout.write('Successfully updated bike and dock counts for ' +
+            self.stdout.write('\nSuccessfully updated bike and dock counts for ' +
                 '%s.' % city.name)
 
     @staticmethod
@@ -88,4 +92,7 @@ class Command(BaseCommand):
         if timestamp:
             return datetime.fromtimestamp(int(timestamp) / 1e3)
         return None
+
+    def progress(self, str):
+        self.stdout.write(str, ending='')
 
