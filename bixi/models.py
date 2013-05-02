@@ -1,3 +1,5 @@
+from math import radians, cos, sin, asin, sqrt
+
 from django.db import models
 
 
@@ -42,6 +44,22 @@ class Station(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def distance(self, lat, long):
+        """
+        Calculate the great circle distance in meters between two points on the
+        Earth (specified in decimal degrees.)
+        Taken on May 1st 2013 from:
+        http://stackoverflow.com/a/4913653
+        """
+        # Convert decimal degrees to radians
+        long1, lat1, long2, lat2 = map(radians, [self.long, self.lat, long, lat])
+        # Haversine formula
+        dlon = long2 - long1
+        dlat = lat2 - lat1
+        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+        c = 2 * asin(sqrt(a))
+        return 6367 * c
 
 class Update(models.Model):
     station = models.ForeignKey(Station)
