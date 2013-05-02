@@ -61,6 +61,21 @@ class Station(models.Model):
         c = 2 * asin(sqrt(a))
         return 6367 * c
 
+    def closest_stations(self, num_stations):
+        """
+        Upon giving it a number of stations to look for, return a list of
+        tuples containing the distance and station sorted by proximity.
+        """
+        stations = dict()
+        for s in Station.objects.filter(city=self.city).exclude(pk=self.pk):
+            stations[self.distance(s.lat, s.long)] = s
+        sorted_stations = []
+        for (i, s) in enumerate(sorted(stations.keys())):
+            if i == num_stations:
+                break
+            sorted_stations.append((s, stations[s],))
+        return sorted_stations
+
 class Update(models.Model):
     station = models.ForeignKey(Station)
     nb_bikes = models.IntegerField()
