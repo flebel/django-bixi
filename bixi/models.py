@@ -47,10 +47,9 @@ class Station(models.Model):
 
     def distance(self, lat, long):
         """
-        Calculate the great circle distance in meters between two points on the
+        Calculate the great circle distance in meters between two points on
         Earth (specified in decimal degrees.)
-        Taken on May 1st 2013 from:
-        http://stackoverflow.com/a/4913653
+        Taken on May 1st 2013 from http://stackoverflow.com/a/4913653
         """
         # Convert decimal degrees to radians
         long1, lat1, long2, lat2 = map(radians, [self.long, self.lat, long, lat])
