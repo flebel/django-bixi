@@ -45,10 +45,10 @@ class Station(models.Model):
     def __unicode__(self):
         return self.name
 
-    def neighbour_stations(self, num_stations=None):
+    def neighbor_stations(self, num_stations=None):
         """
         Upon giving it a number of stations to look for, return a list of
-        tuples containing the distance of the neighbour stations sorted by
+        tuples containing the distance of the neighbor stations sorted by
         proximity.
         """
         return Station.closest_stations(self.city, self.lat, self.long,
