@@ -1,6 +1,6 @@
-from math import radians, cos, sin, asin, sqrt
-
 from django.db import models
+
+from utils import distance
 
 
 class City(models.Model):
@@ -45,29 +45,25 @@ class Station(models.Model):
     def __unicode__(self):
         return self.name
 
-    def distance(self, lat, long):
-        """
-        Calculate the great circle distance in meters between two points on
-        Earth (specified in decimal degrees.)
-        Taken on May 1st 2013 from http://stackoverflow.com/a/4913653
-        """
-        # Convert decimal degrees to radians
-        long1, lat1, long2, lat2 = map(radians, [self.long, self.lat, long, lat])
-        # Haversine formula
-        dlon = long2 - long1
-        dlat = lat2 - lat1
-        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-        c = 2 * asin(sqrt(a))
-        return 6367 * c
-
-    def closest_stations(self, num_stations=None):
+    def neighbour_stations(self, num_stations=None):
         """
         Upon giving it a number of stations to look for, return a list of
-        tuples containing the distance and station sorted by proximity.
+        tuples containing the distance of the neighbour stations sorted by
+        proximity.
+        """
+        return Station.closest_stations(self.city, self.lat, self.long,
+            num_stations)
+
+    @staticmethod
+    def closest_stations(city, lat, long, num_stations=None):
+        """
+        Upon giving it a city, latitude, longitude coordinates and a number of
+        stations to look for, return a list of tuples containing the distance
+        and station sorted by proximity.
         """
         stations = dict()
-        for s in Station.objects.filter(city=self.city).exclude(pk=self.pk):
-            stations[self.distance(s.lat, s.long)] = s
+        for s in Station.objects.filter(city=city).exclude(lat=lat, long=long):
+            stations[distance(lat, long, s.lat, s.long)] = s
         sorted_stations = []
         for (i, s) in enumerate(sorted(stations.keys())):
             if num_stations and i == num_stations:
