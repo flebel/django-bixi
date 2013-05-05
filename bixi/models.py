@@ -51,18 +51,21 @@ class Station(models.Model):
         tuples containing the distance of the neighbor stations sorted by
         proximity.
         """
-        return Station.closest_stations(self.city, self.lat, self.long,
+        return Station.closest_stations(self.lat, self.long, self.city,
             num_stations)
 
     @staticmethod
-    def closest_stations(city, lat, long, num_stations=None):
+    def closest_stations(lat, long, city=None, num_stations=None):
         """
         Upon giving it a city, latitude, longitude coordinates and a number of
         stations to look for, return a list of tuples containing the distance
         and station sorted by proximity.
         """
         stations = dict()
-        for s in Station.objects.filter(city=city).exclude(lat=lat, long=long):
+        stations_qs = Station.objects.exclude(lat=lat, long=long)
+        if (city):
+            stations_qs = stations_qs.filter(city=city)
+        for s in stations_qs:
             stations[distance(lat, long, s.lat, s.long)] = s
         sorted_stations = []
         for (i, s) in enumerate(sorted(stations.keys())):
