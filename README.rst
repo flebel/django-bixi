@@ -11,7 +11,8 @@ Requirements for django-bixi:
 * south (required if you plan on using the migrations)
 
 These requirements are expressed in the requirements.txt file and may be
-installed by running the following (from within a virtual environment)::
+installed by running the following command (from within a virtual
+environment)::
 
     pip install -r requirements.txt
 
