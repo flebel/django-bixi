@@ -8,7 +8,11 @@ from tastypie.utils import trailing_slash
 from models import City, Station, Update
 
 
-class CityResource(ModelResource):
+class BixiResource(ModelResource):
+  def determine_format(self, request):
+    return 'application/json'
+
+class CityResource(BixiResource):
     class Meta:
         allowed_methods = ['get']
         queryset = City.objects.all()
@@ -19,7 +23,7 @@ class CityResource(ModelResource):
             expiration=settings.BIXI_EXPIRATION
         )
 
-class StationResource(ModelResource):
+class StationResource(BixiResource):
     def dehydrate(self, bundle):
         update = Update.objects.filter(station__id=bundle.data['id']).latest()
         bundle.data['nb_bikes'] = update.nb_bikes
