@@ -15,7 +15,8 @@ class BixiResource(ModelResource):
 class CityResource(BixiResource):
     class Meta:
         allowed_methods = ['get']
-        queryset = City.objects.all()
+        excludes = ['active']
+        queryset = City.available.all()
         resource_name = 'city'
         throttle = CacheThrottle(
             throttle_at=settings.BIXI_THROTTLE_AT,
@@ -62,7 +63,7 @@ class StationResource(BixiResource):
 
         city = None
         if city_code:
-            city = City.objects.get(code=city_code)
+            city = City.available.get(code=city_code)
 
         stations = Station.closest_stations(lat, long, city, num_stations)
         objects = []

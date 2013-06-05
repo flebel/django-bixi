@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         city_codes = args or \
-            map(lambda x: x[0], City.objects.all().values_list('code'))
+            map(lambda x: x[0], City.available.all().values_list('code'))
 
         for city_code in city_codes:
             try:

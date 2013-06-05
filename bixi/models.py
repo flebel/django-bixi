@@ -3,11 +3,20 @@ from django.db import models
 from utils import distance
 
 
+class AvailableCityManager(models.Manager):
+    def get_query_set(self):
+        return super(AvailableCityManager, self).get_query_set().filter(
+            active=True)
+
 class City(models.Model):
     code = models.SlugField(max_length=20)
     name = models.CharField(max_length=200)
     url = models.URLField()
+    active = models.BooleanField(default=True)
     last_update = models.DateTimeField(null=True)
+
+    objects = models.Manager()
+    available = AvailableCityManager()
 
     class Meta:
         get_latest_by = 'last_update'
@@ -16,9 +25,9 @@ class City(models.Model):
     def __unicode__(self):
         return self.name
 
-class AvailableManager(models.Manager):
+class AvailableStationManager(models.Manager):
     def get_query_set(self):
-        return super(AvailableManager, self).get_query_set().filter(
+        return super(AvailableStationManager, self).get_query_set().filter(
             installed=True, locked=False)
 
 class Station(models.Model):
@@ -37,7 +46,7 @@ class Station(models.Model):
     public = models.BooleanField()
 
     objects = models.Manager()
-    available = AvailableManager()
+    available = AvailableStationManager()
 
     class Meta:
         get_latest_by = 'last_comm_with_server'

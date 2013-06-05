@@ -3,9 +3,9 @@ from models import City, Station, Update
 
 
 class CityAdmin(admin.ModelAdmin):
-    fields = ('name', 'code', 'url',)
-    list_display = ('name', 'code', 'url', 'last_update',)
-    search_fields = ('name', 'code',)
+    fields = ('name', 'code', 'url', 'active',)
+    list_display = ('name', 'code', 'url', 'last_update', 'active',)
+    search_fields = ('name', 'code', 'active',)
 
 admin.site.register(City, CityAdmin)
 
