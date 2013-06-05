@@ -18,10 +18,10 @@ class Command(BaseCommand):
         return None
 
     def handle(self, *args, **options):
-        if not args:
-            raise CommandError('At least one city_code must be given.')
+        city_codes = args or \
+            map(lambda x: x[0], City.objects.all().values_list('code'))
 
-        for city_code in args:
+        for city_code in city_codes:
             try:
                 city = City.objects.get(code=city_code)
             except City.DoesNotExist:
