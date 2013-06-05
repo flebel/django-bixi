@@ -42,7 +42,12 @@ Initial data
 
 Upon running `syncdb`, cities that expose their bike stations data will be automatically inserted into the database. For the moment, only the following cities are included:
 
+* Boston
+* Melbourne
+* Minneapolis
 * Montreal
 * Ottawa
+* Ottawa
 * Toronto
+* Washington
 
