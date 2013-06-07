@@ -34,6 +34,7 @@ class StationResource(BixiResource):
     class Meta:
         allowed_methods = ['get']
         excludes = ['public_id', 'terminal_name']
+        max_limit = 0
         queryset = Station.available.all()
         resource_name = 'station'
         throttle = CacheThrottle(
