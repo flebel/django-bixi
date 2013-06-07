@@ -38,8 +38,11 @@ class Command(BaseCommand):
             stations = root.findall('station')
             for s in stations:
                 public_id = int(s.find('id').text)
-                last_comm_with_server = Command.timestampToDateTime(
-                    s.find('lastCommWithServer').text)
+                if s.find('lastCommWithServer') is not None:
+                    last_comm_with_server = Command.timestampToDateTime(
+                        s.find('lastCommWithServer').text)
+                else:
+                    last_comm_with_server = None
                 try:
                     station = Station.objects.get(city=city,
                         public_id=public_id)
@@ -69,11 +72,17 @@ class Command(BaseCommand):
                 removal_date = Command.timestampToDateTime(
                     s.find('removalDate').text)
                 temporary = s.find('temporary').text == 'true'
-                public = s.find('public').text == 'true'
+                if s.find('public') is not None:
+                    public = s.find('public').text == 'true'
+                else:
+                    public = None
                 nb_bikes = int(s.find('nbBikes').text)
                 nb_empty_docks = int(s.find('nbEmptyDocks').text)
-                latest_update_time = Command.timestampToDateTime(
-                    s.find('latestUpdateTime').text)
+                if s.find('latestUpdateTime') is not None:
+                    latest_update_time = Command.timestampToDateTime(
+                        s.find('latestUpdateTime').text)
+                else:
+                    latest_update_time = datetime.now()
                 station.last_comm_with_server = last_comm_with_server
                 station.lat = lat
                 station.long = long
