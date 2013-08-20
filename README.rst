@@ -47,7 +47,6 @@ Upon running `syncdb`, cities that expose their bike stations data will be autom
 * Minneapolis
 * Montreal
 * Ottawa
-* Ottawa
 * Toronto
 * Washington
 
