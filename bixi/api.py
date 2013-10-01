@@ -1,9 +1,11 @@
 from django.conf import settings
 from django.conf.urls.defaults import url
 
-from tastypie.resources import ModelResource
+from tastypie.authorization import Authorization
+from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS
 from tastypie.throttle import CacheThrottle
 from tastypie.utils import trailing_slash
+from tastypie import fields
 
 from models import City, Station, Update
 
@@ -18,6 +20,9 @@ class CityResource(BixiResource):
         excludes = ['active']
         queryset = City.available.all()
         resource_name = 'city'
+        filtering = {
+            'name': ALL
+        }
         throttle = CacheThrottle(
             throttle_at=settings.BIXI_THROTTLE_AT,
             timeframe=settings.BIXI_TIMEFRAME,
@@ -25,6 +30,8 @@ class CityResource(BixiResource):
         )
 
 class StationResource(BixiResource):
+    city = fields.ForeignKey(CityResource, 'city')
+    
     def dehydrate(self, bundle):
         update = Update.objects.filter(station__id=bundle.data['id']).latest()
         bundle.data['nb_bikes'] = update.nb_bikes
@@ -37,6 +44,10 @@ class StationResource(BixiResource):
         max_limit = 0
         queryset = Station.available.all()
         resource_name = 'station'
+        authorization = Authorization()
+        filtering = {
+            'city': ALL_WITH_RELATIONS
+        }
         throttle = CacheThrottle(
             throttle_at=settings.BIXI_THROTTLE_AT,
             timeframe=settings.BIXI_TIMEFRAME,
