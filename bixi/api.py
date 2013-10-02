@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.conf.urls.defaults import url
 
-from tastypie.authorization import Authorization
 from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS
 from tastypie.throttle import CacheThrottle
 from tastypie.utils import trailing_slash
