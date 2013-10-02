@@ -21,7 +21,7 @@ class CityResource(BixiResource):
         queryset = City.available.all()
         resource_name = 'city'
         filtering = {
-            'name': ALL
+            'code': ALL
         }
         throttle = CacheThrottle(
             throttle_at=settings.BIXI_THROTTLE_AT,
@@ -44,7 +44,6 @@ class StationResource(BixiResource):
         max_limit = 0
         queryset = Station.available.all()
         resource_name = 'station'
-        authorization = Authorization()
         filtering = {
             'city': ALL_WITH_RELATIONS
         }
