@@ -14,5 +14,5 @@ def distance(lat1, long1, lat2, long2):
     dlat = rlat2 - rlat1
     a = sin(dlat / 2) ** 2 + cos(rlat1) * cos(rlat2) * sin(dlon / 2) ** 2
     c = 2 * asin(sqrt(a))
-    return 6367 * c
+    return 6367 * c * 1000
 
