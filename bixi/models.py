@@ -8,6 +8,7 @@ class AvailableCityManager(models.Manager):
         return super(AvailableCityManager, self).get_query_set().filter(
             active=True)
 
+
 class City(models.Model):
     code = models.SlugField(max_length=20)
     name = models.CharField(max_length=200)
@@ -25,10 +26,12 @@ class City(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class AvailableStationManager(models.Manager):
     def get_query_set(self):
         return super(AvailableStationManager, self).get_query_set().filter(
             installed=True, locked=False)
+
 
 class Station(models.Model):
     city = models.ForeignKey(City)
@@ -72,7 +75,7 @@ class Station(models.Model):
         """
         stations = dict()
         stations_qs = Station.objects.exclude(lat=lat, long=long)
-        if (city):
+        if city:
             stations_qs = stations_qs.filter(city=city)
         for s in stations_qs:
             stations[distance(lat, long, s.lat, s.long)] = s
@@ -82,6 +85,7 @@ class Station(models.Model):
                 break
             sorted_stations.append((s, stations[s],))
         return sorted_stations
+
 
 class Update(models.Model):
     station = models.ForeignKey(Station)
