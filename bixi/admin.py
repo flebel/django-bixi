@@ -6,8 +6,8 @@ class CityAdmin(admin.ModelAdmin):
     fields = ('name', 'code', 'url', 'active',)
     list_display = ('name', 'code', 'url', 'last_update', 'active',)
     search_fields = ('name', 'code', 'active',)
-
 admin.site.register(City, CityAdmin)
+
 
 class StationAdmin(admin.ModelAdmin):
     list_display = ('city', 'name', 'last_comm_with_server', 'installed',
@@ -23,8 +23,8 @@ class StationAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
 admin.site.register(Station, StationAdmin)
+
 
 class UpdateAdmin(admin.ModelAdmin):
     list_display = ('station', 'nb_bikes', 'nb_empty_docks',
@@ -39,6 +39,5 @@ class UpdateAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
 admin.site.register(Update, UpdateAdmin)
 

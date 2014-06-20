@@ -13,6 +13,7 @@ class BixiResource(ModelResource):
   def determine_format(self, request):
     return 'application/json'
 
+
 class CityResource(BixiResource):
     class Meta:
         allowed_methods = ['get']
@@ -28,14 +29,9 @@ class CityResource(BixiResource):
             expiration=settings.BIXI_EXPIRATION
         )
 
+
 class StationResource(BixiResource):
     city = fields.ForeignKey(CityResource, 'city')
-    
-    def dehydrate(self, bundle):
-        update = Update.objects.filter(station__id=bundle.data['id']).latest()
-        bundle.data['nb_bikes'] = update.nb_bikes
-        bundle.data['nb_empty_docks'] = update.nb_empty_docks
-        return bundle
 
     class Meta:
         allowed_methods = ['get']
@@ -52,15 +48,11 @@ class StationResource(BixiResource):
             expiration=settings.BIXI_EXPIRATION
         )
 
-    def prepend_urls(self):
-        return [
-            url(r"^(?P<resource_name>%s)/closest%s$" % (
-                self._meta.resource_name,
-                trailing_slash()
-            ),
-            self.wrap_view('get_closest_stations'),
-            name='api_get_closest_stations'),
-        ]
+    def dehydrate(self, bundle):
+        update = Update.objects.filter(station__id=bundle.data['id']).latest()
+        bundle.data['nb_bikes'] = update.nb_bikes
+        bundle.data['nb_empty_docks'] = update.nb_empty_docks
+        return bundle
 
     def get_closest_stations(self, request, **kwargs):
         self.method_check(request, allowed=['get'])
@@ -89,4 +81,14 @@ class StationResource(BixiResource):
 
         self.log_throttled_access(request)
         return self.create_response(request, object_list)
+
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/closest%s$" % (
+                self._meta.resource_name,
+                trailing_slash()
+            ),
+            self.wrap_view('get_closest_stations'),
+            name='api_get_closest_stations'),
+        ]
 
