@@ -10,7 +10,7 @@ class AvailableCityManager(models.Manager):
 
 
 class City(models.Model):
-    PARSER_TYPES_VALUES = ('A',)
+    PARSER_TYPES_VALUES = ('A', 'B',)
     PARSER_TYPES = [(val[1], val[0],) for val in enumerate(PARSER_TYPES_VALUES)]
 
     code = models.SlugField(max_length=20)
