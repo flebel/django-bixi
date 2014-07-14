@@ -102,6 +102,24 @@ class Command(BaseCommand):
     args = '<city_code city_code ...>'
     help = 'Updates the current bike and dock counts for a given list of cities.'
 
+    def __init__(self):
+        self.created = 0
+        self.status_quo = 0
+        self.updated = 0
+        return super(Command, self).__init__()
+
+    def _increase_created_count(self):
+        self.created = self.created + 1
+        self.progress('c')
+
+    def _increase_status_quo_count(self):
+        self.status_quo = self.status_quo + 1
+        self.progress('.')
+
+    def _increase_updated_count(self):
+        self.updated = self.updated + 1
+        self.progress('u')
+
     def handle(self, *args, **options):
         city_codes = args or map(lambda x: x[0], City.available.all().values_list('code'))
         parsers_module = importlib.import_module(self.__class__.__module__)
@@ -120,24 +138,17 @@ class Command(BaseCommand):
             except IndexError:
                 raise NotImplementedError("The parser for '%s' hasn't been implemented yet." % (city.name,))
 
-            created = 0
-            updated = 0
-            status_quo = 0
-
             for s in parser.get_stations():
                 attrs = dict()
                 public_id = parser.get_public_id(s)
                 last_comm_with_server = parser.get_last_communication_time_with_server(s)
                 try:
-                    station = Station.objects.get(city=city,
-                        public_id=public_id)
-                    if station.last_comm_with_server == last_comm_with_server:
-                        status_quo = status_quo + 1
-                        self.progress('.')
+                    station = Station.objects.get(city=city, public_id=public_id)
+                    # Skip if we have a timestamp to compare against
+                    if last_comm_with_server and station.last_comm_with_server == last_comm_with_server:
+                        self._update_status_quo()
                         continue
-                    else:
-                        updated = updated + 1
-                        self.progress('u')
+                    # Else, update the station
                 except Station.DoesNotExist:
                     station = Station()
                     attrs.update({
@@ -161,6 +172,20 @@ class Command(BaseCommand):
                     'temporary': parser.is_temporary(s),
                 })
 
+                if not station.last_comm_with_server:
+                    skip_station = True
+                    for (attr, value,) in attrs.items():
+                        if not getattr(station, attr) == value:
+                            # Skip the station altogether
+                            import ipdb; ipdb.set_trace()
+                            skip_station = False
+                            continue
+                    if skip_station:
+                        self._increase_status_quo_count()
+                        continue
+
+                self._increase_updated_count()
+
                 for (k, v) in attrs.items():
                     assert k in station.__dict__, "The attribute '%s' must be an existing model field." % (k,)
                     setattr(station, k, v)
@@ -183,9 +208,9 @@ class Command(BaseCommand):
 
             self.stdout.write("\nSuccessfully updated bike and dock counts for " +
                 "'%s'." % city.name)
-            self.stdout.write('Created: %s' % created)
-            self.stdout.write('Updated: %s' % updated)
-            self.stdout.write('Status quo: %s' % status_quo)
+            self.stdout.write('Created: %s' % self.created)
+            self.stdout.write('Updated: %s' % self.updated)
+            self.stdout.write('Status quo: %s' % self.status_quo)
 
     def progress(self, str):
         self.stdout.write(str, ending='')
