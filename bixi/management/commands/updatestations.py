@@ -1,3 +1,4 @@
+import importlib
 import urllib2
 from datetime import datetime
 from xml.etree import ElementTree
@@ -103,6 +104,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         city_codes = args or map(lambda x: x[0], City.available.all().values_list('code'))
+        parsers_module = importlib.import_module(self.__class__.__module__)
 
         for city_code in city_codes:
             try:
@@ -112,11 +114,10 @@ class Command(BaseCommand):
 
             xml = urllib2.urlopen(city.url)
 
-            if city_code in ('boston', 'minneapolis', 'montreal', 'ottawa', 'toronto', 'washington',):
-                parser = StationListParserTypeA(xml)
-            elif city_code in ('london',):
-                parser = StationListParserTypeB(xml)
-            else:
+            parsers = {City.parser_code_to_value(value): getattr(parsers_module, 'StationListParserType' + value) for value in City.PARSER_TYPES_VALUES}
+            try:
+                parser = parsers[city.parser_type](xml)
+            except IndexError:
                 raise NotImplementedError("The parser for '%s' hasn't been implemented yet." % (city.name,))
 
             created = 0

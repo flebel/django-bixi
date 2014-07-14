@@ -10,9 +10,13 @@ class AvailableCityManager(models.Manager):
 
 
 class City(models.Model):
+    PARSER_TYPES_VALUES = ('A',)
+    PARSER_TYPES = [(val[1], val[0],) for val in enumerate(PARSER_TYPES_VALUES)]
+
     code = models.SlugField(max_length=20)
     name = models.CharField(max_length=200)
     url = models.URLField()
+    parser_type = models.SmallIntegerField(choices=PARSER_TYPES, default=0)
     active = models.BooleanField(default=True)
     last_update = models.DateTimeField(null=True)
 
@@ -25,6 +29,10 @@ class City(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @staticmethod
+    def parser_code_to_value(code):
+        return [pt[1] for pt in City.PARSER_TYPES if pt[0] == code][0]
 
 
 class AvailableStationManager(models.Manager):
