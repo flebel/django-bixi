@@ -108,17 +108,20 @@ class Command(BaseCommand):
         self.updated = 0
         return super(Command, self).__init__()
 
+    def _progress(self, str):
+        self.stdout.write(str, ending='')
+
     def _increase_created_count(self):
         self.created = self.created + 1
-        self.progress('c')
+        self._progress('c')
 
     def _increase_status_quo_count(self):
         self.status_quo = self.status_quo + 1
-        self.progress('.')
+        self._progress('.')
 
     def _increase_updated_count(self):
         self.updated = self.updated + 1
-        self.progress('u')
+        self._progress('u')
 
     def handle(self, *args, **options):
         city_codes = args or map(lambda x: x[0], City.available.all().values_list('code'))
@@ -158,7 +161,6 @@ class Command(BaseCommand):
                         'terminal_name': parser.get_terminal_name(s),
                     })
                     self._increase_created_count()
-                    self.progress('c')
 
                 attrs.update({
                     'install_date': parser.get_install_date(s),
@@ -210,7 +212,4 @@ class Command(BaseCommand):
             self.stdout.write('Created: %s' % self.created)
             self.stdout.write('Updated: %s' % self.updated)
             self.stdout.write('Status quo: %s' % self.status_quo)
-
-    def progress(self, str):
-        self.stdout.write(str, ending='')
 
