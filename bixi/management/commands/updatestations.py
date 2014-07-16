@@ -177,7 +177,6 @@ class Command(BaseCommand):
                     for (attr, value,) in attrs.items():
                         if not getattr(station, attr) == value:
                             # Skip the station altogether
-                            import ipdb; ipdb.set_trace()
                             skip_station = False
                             continue
                     if skip_station:
