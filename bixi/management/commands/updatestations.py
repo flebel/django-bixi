@@ -9,8 +9,12 @@ from bixi.models import City, Station, Update
 
 
 def timestampToDateTime(timestamp):
-    if timestamp:
-        return datetime.fromtimestamp(int(timestamp) / 1e3)
+    try:
+        ts = int(timestamp)
+    except ValueError:
+        ts = 0
+    if ts:
+        return datetime.fromtimestamp(ts / 1e3)
     return None
 
 
