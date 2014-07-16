@@ -146,7 +146,7 @@ class Command(BaseCommand):
                     station = Station.objects.get(city=city, public_id=public_id)
                     # Skip if we have a timestamp to compare against
                     if last_comm_with_server and station.last_comm_with_server == last_comm_with_server:
-                        self._update_status_quo()
+                        self._increase_status_quo_count()
                         continue
                     # Else, update the station
                 except Station.DoesNotExist:
