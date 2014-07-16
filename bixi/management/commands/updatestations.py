@@ -160,7 +160,6 @@ class Command(BaseCommand):
                         'public_id': public_id,
                         'terminal_name': parser.get_terminal_name(s),
                     })
-                    self._increase_created_count()
 
                 attrs.update({
                     'install_date': parser.get_install_date(s),
@@ -185,7 +184,11 @@ class Command(BaseCommand):
                         self._increase_status_quo_count()
                         continue
 
-                self._increase_updated_count()
+                # Wait until after the last timestamp check to update the summary
+                if station.pk:
+                    self._increase_updated_count()
+                else:
+                    self._increase_created_count()
 
                 for (k, v) in attrs.items():
                     assert k in station.__dict__, "The attribute '%s' must be an existing model field." % (k,)
