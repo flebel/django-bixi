@@ -157,7 +157,7 @@ class Command(BaseCommand):
                         'public_id': public_id,
                         'terminal_name': parser.get_terminal_name(s),
                     })
-                    created = created + 1
+                    self._increase_created_count()
                     self.progress('c')
 
                 attrs.update({
