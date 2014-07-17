@@ -94,5 +94,18 @@
         },
         "model": "bixi.city",
         "pk": 8
+    },
+    {
+        "fields": {
+            "active": true,
+            "code": "sfbayarea",
+            "last_update": null,
+            "name": "San Francisco Bay Area",
+            "parser_type": 2,
+            "url": "https://www.bayareabikeshare.com/stations/json/"
+        },
+        "model": "bixi.city",
+        "pk": 9
     }
+
 ]
