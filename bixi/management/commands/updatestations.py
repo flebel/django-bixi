@@ -1,4 +1,5 @@
 import importlib
+import json
 import urllib2
 from datetime import datetime
 from xml.etree import ElementTree
@@ -11,7 +12,7 @@ from bixi.models import City, Station, Update
 def timestampToDateTime(timestamp):
     try:
         ts = int(timestamp)
-    except ValueError:
+    except TypeError, ValueError:
         ts = 0
     if ts:
         return datetime.fromtimestamp(ts / 1e3)
@@ -65,6 +66,21 @@ class StationListParser:
         return self.find(station, 'temporary') == 'true'
 
 
+class JsonParser:
+    def __init__(self, data, *args, **kwargs):
+        unicode_data = data.read().decode('unicode-escape')
+        self.json = json.loads(unicode_data)
+
+    def find(self, element, field_name):
+        return element.get(field_name)
+
+    def get_last_update_time(self):
+        return None
+
+    def get_stations(self):
+        return self.json
+
+
 class XmlParser:
     def __init__(self, data, *args, **kwargs):
         tree = ElementTree.parse(data)
@@ -102,6 +118,17 @@ class StationListParserTypeB(XmlParser, StationListParser):
         return None
 
 
+class StationListParserTypeC(JsonParser, StationListParser):
+    def get_last_communication_time_with_server(self, station):
+        return timestampToDateTime(self.find(station, 'lastCommWithServer'))
+
+    def get_latest_update_time(self, station):
+        return timestampToDateTime(self.find(station, 'latestUpdateTime'))
+
+    def is_public(self, station):
+        return self.find(station, 'public') == 'true'
+
+
 class Command(BaseCommand):
     args = '<city_code city_code ...>'
     help = 'Updates the current bike and dock counts for a given list of cities.'
@@ -137,11 +164,11 @@ class Command(BaseCommand):
             except City.DoesNotExist:
                 raise CommandError("City '%s' does not exist." % city_code)
 
-            xml = urllib2.urlopen(city.url)
+            data = urllib2.urlopen(city.url)
 
             parsers = {City.parser_code_to_value(value): getattr(parsers_module, 'StationListParserType' + value) for value in City.PARSER_TYPES_VALUES}
             try:
-                parser = parsers[city.parser_type](xml)
+                parser = parsers[city.parser_type](data)
             except IndexError:
                 raise NotImplementedError("The parser for '%s' hasn't been implemented yet." % (city.name,))
 

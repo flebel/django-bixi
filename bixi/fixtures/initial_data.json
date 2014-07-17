@@ -41,7 +41,7 @@
             "code": "melbourne",
             "last_update": null,
             "name": "Melbourne",
-            "parser_type": 0,
+            "parser_type": 2,
             "url": "http://www.melbournebikeshare.com.au/stationmap/data"
         },
         "model": "bixi.city",
