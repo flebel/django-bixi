@@ -171,9 +171,7 @@ class Command(BaseCommand):
     help = 'Updates the current bike and dock counts for a given list of cities.'
 
     def __init__(self):
-        self.created = 0
-        self.status_quo = 0
-        self.updated = 0
+        self._reset_counts()
         return super(Command, self).__init__()
 
     def _progress(self, str):
@@ -190,6 +188,11 @@ class Command(BaseCommand):
     def _increase_updated_count(self):
         self.updated = self.updated + 1
         self._progress('u')
+
+    def _reset_counts(self):
+        self.created = 0
+        self.status_quo = 0
+        self.updated = 0
 
     def handle(self, *args, **options):
         city_codes = args or map(lambda x: x[0], City.available.all().values_list('code'))
@@ -208,6 +211,8 @@ class Command(BaseCommand):
                 parser = parsers[city.parser_type](data)
             except IndexError:
                 raise NotImplementedError("The parser for '%s' hasn't been implemented yet." % (city.name,))
+
+            self._reset_counts()
 
             for s in parser.get_stations():
                 attrs = dict()
