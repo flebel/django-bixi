@@ -75,10 +75,12 @@ class JsonParser:
         return element.get(field_name)
 
     def get_last_update_time(self):
-        return None
+        execution_time = self.json.get('executionTime')
+        dt_format = '%Y-%m-%d %I:%M:%S %p'
+        return datetime.strptime(execution_time, dt_format)
 
     def get_stations(self):
-        return self.json
+        return self.json.get('stationBeanList')
 
 
 class XmlParser:
@@ -119,14 +121,49 @@ class StationListParserTypeB(XmlParser, StationListParser):
 
 
 class StationListParserTypeC(JsonParser, StationListParser):
+    STATUSES = (('In Service', 1,),)
+
+    def get_install_date(self, station):
+        return None
+
     def get_last_communication_time_with_server(self, station):
-        return timestampToDateTime(self.find(station, 'lastCommWithServer'))
+        return timestampToDateTime(self.find(station, 'lastCommunicationTime'))
 
     def get_latest_update_time(self, station):
-        return timestampToDateTime(self.find(station, 'latestUpdateTime'))
+        return None
+
+    def get_latitude(self, station):
+        return self.find(station, 'latitude')
+
+    def get_longitude(self, station):
+        return self.find(station, 'longitude')
+
+    def get_number_available_bikes(self, station):
+        return self.find(station, 'availableBikes')
+
+    def get_number_empty_docks(self, station):
+        return self.find(station, 'availableDocks')
+
+    def get_removal_date(self, station):
+        return None
+
+    def get_station_name(self, station):
+        return self.find(station, 'stationName')
+
+    def get_terminal_name(self, station):
+        return self.find(station, 'location')
+
+    def is_locked(self, station):
+        return None
+
+    def is_installed(self, station):
+        return self.find(station, 'statusKey') == 1
 
     def is_public(self, station):
-        return self.find(station, 'public') == 'true'
+        return None
+
+    def is_temporary(self, station):
+        return self.find(station, 'testStation')
 
 
 class Command(BaseCommand):
@@ -134,9 +171,7 @@ class Command(BaseCommand):
     help = 'Updates the current bike and dock counts for a given list of cities.'
 
     def __init__(self):
-        self.created = 0
-        self.status_quo = 0
-        self.updated = 0
+        self._reset_counts()
         return super(Command, self).__init__()
 
     def _progress(self, str):
@@ -153,6 +188,11 @@ class Command(BaseCommand):
     def _increase_updated_count(self):
         self.updated = self.updated + 1
         self._progress('u')
+
+    def _reset_counts(self):
+        self.created = 0
+        self.status_quo = 0
+        self.updated = 0
 
     def handle(self, *args, **options):
         city_codes = args or map(lambda x: x[0], City.available.all().values_list('code'))
@@ -171,6 +211,8 @@ class Command(BaseCommand):
                 parser = parsers[city.parser_type](data)
             except IndexError:
                 raise NotImplementedError("The parser for '%s' hasn't been implemented yet." % (city.name,))
+
+            self._reset_counts()
 
             for s in parser.get_stations():
                 attrs = dict()
@@ -204,35 +246,48 @@ class Command(BaseCommand):
                     'temporary': parser.is_temporary(s),
                 })
 
-                if not station.last_comm_with_server:
-                    skip_station = True
-                    for (attr, value,) in attrs.items():
-                        if not getattr(station, attr) == value:
-                            # Skip the station altogether
-                            skip_station = False
+                nb_bikes = parser.get_number_available_bikes(s)
+                nb_empty_docks = parser.get_number_empty_docks(s)
+
+                # Try to find if there has been changes since the last time
+                # this station was updated
+                latest_update_time = parser.get_latest_update_time(s)
+                if latest_update_time:
+                    if not station.last_comm_with_server:
+                        skip_station = True
+                        for (attr, value,) in attrs.items():
+                            if not getattr(station, attr) == value:
+                                # Skip the station altogether
+                                skip_station = False
+                                continue
+                        if skip_station:
+                            self._increase_status_quo_count()
                             continue
-                    if skip_station:
+                    if Update.objects.filter(station=station,
+                            latest_update_time=latest_update_time).exists():
                         self._increase_status_quo_count()
                         continue
-
-                # Wait until after the last timestamp check to update the summary
-                if station.pk:
-                    self._increase_updated_count()
                 else:
-                    self._increase_created_count()
-
+                    # Too little information is available for this station,
+                    # compare against the most recent update
+                    mru = Update.objects.filter(station=station).latest()
+                    if (mru.nb_bikes, mru.nb_empty_docks,) == (nb_bikes, nb_empty_docks,):
+                        self._increase_status_quo_count()
+                        continue
                 for (k, v) in attrs.items():
                     assert k in station.__dict__, "The attribute '%s' must be an existing model field." % (k,)
                     setattr(station, k, v)
                 station.save()
 
-                latest_update_time = parser.get_latest_update_time(s)
-                if Update.objects.filter(station=station,
+                if latest_update_time and Update.objects.filter(station=station,
                     latest_update_time=latest_update_time).exists():
                     continue
 
-                nb_bikes = parser.get_number_available_bikes(s)
-                nb_empty_docks = parser.get_number_empty_docks(s)
+                if station.pk:
+                    self._increase_updated_count()
+                else:
+                    self._increase_created_count()
+
                 Update.objects.create(station=station, nb_bikes=nb_bikes,
                     nb_empty_docks=nb_empty_docks,
                     latest_update_time=latest_update_time)

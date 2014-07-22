@@ -45,12 +45,12 @@ class Station(models.Model):
     city = models.ForeignKey(City)
     public_id = models.IntegerField()
     name = models.CharField(max_length=200)
-    terminal_name = models.CharField(max_length=10)
+    terminal_name = models.CharField(max_length=50)
     last_comm_with_server = models.DateTimeField(null=True)
     lat = models.FloatField()
     long = models.FloatField()
     installed = models.BooleanField()
-    locked = models.BooleanField()
+    locked = models.NullBooleanField()
     install_date = models.DateTimeField(null=True)
     removal_date = models.DateTimeField(null=True)
     temporary = models.BooleanField()
@@ -102,7 +102,7 @@ class Update(models.Model):
     latest_update_time = models.DateTimeField(null=True)
 
     class Meta:
-        get_latest_by = 'latest_update_time'
+        get_latest_by = 'pk'
 
     def __unicode__(self):
         return self.station.name
