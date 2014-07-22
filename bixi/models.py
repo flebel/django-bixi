@@ -102,7 +102,7 @@ class Update(models.Model):
     latest_update_time = models.DateTimeField(null=True)
 
     class Meta:
-        get_latest_by = 'latest_update_time'
+        get_latest_by = 'pk'
 
     def __unicode__(self):
         return self.station.name
