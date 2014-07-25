@@ -274,6 +274,7 @@ class Command(BaseCommand):
                     if (mru.nb_bikes, mru.nb_empty_docks,) == (nb_bikes, nb_empty_docks,):
                         self._increase_status_quo_count()
                         continue
+
                 for (k, v) in attrs.items():
                     assert k in station.__dict__, "The attribute '%s' must be an existing model field." % (k,)
                     setattr(station, k, v)
