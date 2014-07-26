@@ -2,7 +2,8 @@ Django app for managing data from the Bixi public bicycle sharing system.
 
 It supports multiple cities out of the box.
 
-[![Build Status](https://travis-ci.org/flebel/django-bixi.svg?branch=master)](https://travis-ci.org/flebel/django-bixi)
+.. image:: https://travis-ci.org/flebel/django-bixi.svg?branch=master
+      :target: https://travis-ci.org/flebel/django-bixi
 
 Getting started
 ===============
