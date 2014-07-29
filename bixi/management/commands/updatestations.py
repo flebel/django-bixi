@@ -79,6 +79,9 @@ class JsonParser:
         dt_format = '%Y-%m-%d %I:%M:%S %p'
         return datetime.strptime(execution_time, dt_format)
 
+    def get_raw_station(self, station):
+        return unicode(station)
+
     def get_stations(self):
         return self.json.get('stationBeanList')
 
@@ -87,6 +90,9 @@ class XmlParser:
     def __init__(self, data, *args, **kwargs):
         tree = ElementTree.parse(data)
         self.root = tree.getroot()
+
+    def get_raw_station(self, station):
+        return ElementTree.tostring(station, method='xml')
 
     def find(self, element, field_name):
         return element.find(field_name).text
@@ -274,6 +280,7 @@ class Command(BaseCommand):
                     if (mru.nb_bikes, mru.nb_empty_docks,) == (nb_bikes, nb_empty_docks,):
                         self._increase_status_quo_count()
                         continue
+
                 for (k, v) in attrs.items():
                     assert k in station.__dict__, "The attribute '%s' must be an existing model field." % (k,)
                     setattr(station, k, v)
@@ -290,7 +297,8 @@ class Command(BaseCommand):
 
                 Update.objects.create(station=station, nb_bikes=nb_bikes,
                     nb_empty_docks=nb_empty_docks,
-                    latest_update_time=latest_update_time)
+                    latest_update_time=latest_update_time,
+                    raw_data=parser.get_raw_station(s))
 
             last_update = parser.get_last_update_time()
             city.last_update = last_update

@@ -100,6 +100,7 @@ class Update(models.Model):
     nb_bikes = models.IntegerField()
     nb_empty_docks = models.IntegerField()
     latest_update_time = models.DateTimeField(null=True)
+    raw_data = models.TextField(null=True)
 
     class Meta:
         get_latest_by = 'pk'
