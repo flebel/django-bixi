@@ -34,6 +34,11 @@ class LatestUpdatesListFilter(BooleanFieldListFilter):
     title = 'Latest updates only'
     parameter_name = 'latest_update_time'
 
+    def choices(self, cl):
+        choices = super(LatestUpdatesListFilter, self).choices(cl)
+        # Remove 'All' from the list of choices
+        return list(choices)[1:]
+
     def queryset(self, request, queryset):
         if self.lookup_val is None or not bool(int(self.lookup_val)):
             return queryset
