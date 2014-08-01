@@ -56,7 +56,7 @@ class UpdateAdmin(admin.ModelAdmin):
     list_filter = (('latest_update_time', LatestUpdatesListFilter,),
         'station__city__name',)
     readonly_fields = ('station', 'nb_bikes', 'nb_empty_docks',
-        'latest_update_time',)
+        'latest_update_time', 'raw_data',)
     search_fields = ('station__name',)
 
     def changelist_view(self, request, extra_context=None):
