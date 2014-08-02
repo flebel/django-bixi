@@ -43,6 +43,9 @@ class City(models.Model):
     def __unicode__(self):
         return self.name
 
+    def clean(self):
+        self.code = self.code.lower()
+
     @staticmethod
     def parser_code_to_value(code):
         return [pt[1] for pt in City.PARSER_TYPES if pt[0] == code][0]
