@@ -9,6 +9,21 @@ from django.core.management.base import BaseCommand, CommandError
 from bixi.models import City, Station, Update
 
 
+PARSERS = {}
+
+
+def build_parser(format, variation):
+    class_name = get_parser_name(format, variation)
+    if not PARSERS.has_key(class_name):
+        parsers_module = importlib.import_module(self.__class__.__module__)
+        parser_formats = {City.parser_format_code_to_value(value): getattr(parsers_module, 'StationListParserType' + value) for value in City.PARSER_FORMATS_VALUES}
+        parser_variations = {City.parser_variation_code_to_value(value): getattr(parsers_module, 'StationListParserType' + value) for value in City.PARSER_VARIATIONS_VALUES}
+        PARSERS[class_name] = type(class_name, (parser_formats[format], parser_variations[variation],), {})
+    return PARSERS[class_name]
+
+def get_parser_name(format, variation):
+    return 'StationListParserFormat%sVariation%s' % (format, variation,)
+
 def timestampToDateTime(timestamp):
     try:
         ts = int(timestamp)
@@ -202,7 +217,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         city_codes = args or map(lambda x: x[0], City.available.all().values_list('code'))
-        parsers_module = importlib.import_module(self.__class__.__module__)
 
         for city_code in city_codes:
             try:
@@ -212,9 +226,8 @@ class Command(BaseCommand):
 
             data = urllib2.urlopen(city.url)
 
-            parsers = {City.parser_code_to_value(value): getattr(parsers_module, 'StationListParserType' + value) for value in City.PARSER_TYPES_VALUES}
             try:
-                parser = parsers[city.parser_type](data)
+                parser = PARSERS[get_parser_name(format, variation)](data)
             except IndexError:
                 raise NotImplementedError("The parser for '%s' hasn't been implemented yet." % (city.name,))
 

@@ -10,8 +10,10 @@ class AvailableCityManager(models.Manager):
 
 
 class City(models.Model):
-    PARSER_TYPES_VALUES = ('A', 'B', 'C',)
-    PARSER_TYPES = [(val[1], val[0],) for val in enumerate(PARSER_TYPES_VALUES)]
+    PARSER_FORMATS_VALUES = ('JSON', 'XML',)
+    PARSER_FORMATS = [(val[1], val[0],) for val in enumerate(PARSER_FORMATS_VALUES)]
+    PARSER_VARIATIONS_VALUES = ('A', 'B', 'C',)
+    PARSER_VARIATIONS = [(val[1], val[0],) for val in enumerate(PARSER_VARIATIONS_VALUES)]
 
     code = models.SlugField(
         help_text='Lowercase slug identifying the city.',
@@ -19,10 +21,15 @@ class City(models.Model):
     )
     name = models.CharField(max_length=200)
     url = models.URLField(help_text='JSON or XML URL containing station updates. Both HTTP and HTTPS are supported.')
-    parser_type = models.SmallIntegerField(
-        choices=PARSER_TYPES,
+    parser_format = models.PositiveSmallIntegerField(
+        choices=PARSER_FORMATS,
+        default=1, # XML seems to be the most common
+        help_text='Parser format to use for the given URL.'
+    )
+    parser_variation = models.PositiveSmallIntegerField(
+        choices=PARSER_VARIATIONS,
         default=0,
-        help_text='Parser to use for the given URL.'
+        help_text="Named variation of the updates format. Refer to the 'updatestations' management command source code for the differences between the available formats."
     )
     active = models.BooleanField(
         default=True,
@@ -47,8 +54,12 @@ class City(models.Model):
         self.code = self.code.lower()
 
     @staticmethod
-    def parser_code_to_value(code):
-        return [pt[1] for pt in City.PARSER_TYPES if pt[0] == code][0]
+    def parser_format_code_to_value(code):
+        return [pt[1] for pt in City.PARSER_FORMATS if pt[0] == code][0]
+
+    @staticmethod
+    def parser_variation_code_to_value(code):
+        return [pt[1] for pt in City.PARSER_VARIATIONS if pt[0] == code][0]
 
 
 class AvailableStationManager(models.Manager):
