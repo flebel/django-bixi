@@ -276,10 +276,12 @@ class Command(BaseCommand):
                 else:
                     # Too little information is available for this station,
                     # compare against the most recent update
-                    mru = Update.objects.filter(station=station).latest()
-                    if (mru.nb_bikes, mru.nb_empty_docks,) == (nb_bikes, nb_empty_docks,):
-                        self._increase_status_quo_count()
-                        continue
+                    mru_qs = Update.objects.filter(station=station)
+                    if mru_qs.exists():
+                        mru = mru_qs.latest()
+                        if (mru.bikes, mru.empty_docks,) == (bikes, empty_docks,):
+                            self._increase_status_quo_count()
+                            continue
 
                 for (k, v) in attrs.items():
                     assert k in station.__dict__, "The attribute '%s' must be an existing model field." % (k,)
