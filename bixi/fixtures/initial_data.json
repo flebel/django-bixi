@@ -3,7 +3,7 @@
         "fields": {
             "active": true,
             "code": "montreal",
-            "last_update": null,
+            "last_recorded_update": null,
             "name": "Montreal",
             "parser_type": 0,
             "url": "https://montreal.bixi.com/data/bikeStations.xml"
@@ -15,7 +15,7 @@
         "fields": {
             "active": true,
             "code": "washington",
-            "last_update": null,
+            "last_recorded_update": null,
             "name": "Washington",
             "parser_type": 0,
             "url": "https://www.capitalbikeshare.com/data/stations/bikeStations.xml"
@@ -27,7 +27,7 @@
         "fields": {
             "active": true,
             "code": "toronto",
-            "last_update": null,
+            "last_recorded_update": null,
             "name": "Toronto",
             "parser_type": 0,
             "url": "https://toronto.bixi.com/data/bikeStations.xml"
@@ -39,7 +39,7 @@
         "fields": {
             "active": false,
             "code": "melbourne",
-            "last_update": null,
+            "last_recorded_update": null,
             "name": "Melbourne",
             "parser_type": 2,
             "url": "http://www.melbournebikeshare.com.au/stationmap/data"
@@ -51,7 +51,7 @@
         "fields": {
             "active": true,
             "code": "boston",
-            "last_update": null,
+            "last_recorded_update": null,
             "name": "Boston",
             "parser_type": 0,
             "url": "https://www.thehubway.com/data/stations/bikeStations.xml"
@@ -63,7 +63,7 @@
         "fields": {
             "active": true,
             "code": "minneapolis",
-            "last_update": null,
+            "last_recorded_update": null,
             "name": "Minneapolis",
             "parser_type": 0,
             "url": "https://secure.niceridemn.org/data2/bikeStations.xml"
@@ -75,7 +75,7 @@
         "fields": {
             "active": true,
             "code": "ottawa",
-            "last_update": null,
+            "last_recorded_update": null,
             "name": "Ottawa",
             "parser_type": 0,
             "url": "https://capitale.bixi.com/data/bikeStations.xml"
@@ -87,7 +87,7 @@
         "fields": {
             "active": true,
             "code": "london",
-            "last_update": null,
+            "last_recorded_update": null,
             "name": "London",
             "parser_type": 1,
             "url": "https://www.tfl.gov.uk/tfl/syndication/feeds/cycle-hire/livecyclehireupdates.xml"
@@ -99,7 +99,7 @@
         "fields": {
             "active": true,
             "code": "sfbayarea",
-            "last_update": null,
+            "last_recorded_update": null,
             "name": "San Francisco Bay Area",
             "parser_type": 2,
             "url": "https://www.bayareabikeshare.com/stations/json/"

@@ -20,10 +20,10 @@ def timestampToDateTime(timestamp):
 
 
 class StationListParser:
-    def get_install_date(self, station):
+    def get_installation_date(self, station):
         return timestampToDateTime(self.find(station, 'installDate'))
 
-    def get_last_communication_time_with_server(self, station):
+    def get_last_recorded_communication(self, station):
         raise NotImplementedError
 
     def get_latest_update_time(self, station):
@@ -50,7 +50,7 @@ class StationListParser:
     def get_station_name(self, station):
         return self.find(station, 'name')
 
-    def get_terminal_name(self, station):
+    def get_vicinity(self, station):
         return self.find(station, 'terminalName')
 
     def is_locked(self, station):
@@ -74,7 +74,7 @@ class JsonParser:
     def find(self, element, field_name):
         return element.get(field_name)
 
-    def get_last_update_time(self):
+    def get_last_recorded_update_time(self):
         execution_time = self.json.get('executionTime')
         dt_format = '%Y-%m-%d %I:%M:%S %p'
         return datetime.strptime(execution_time, dt_format)
@@ -97,7 +97,7 @@ class XmlParser:
     def find(self, element, field_name):
         return element.find(field_name).text
 
-    def get_last_update_time(self):
+    def get_last_recorded_update_time(self):
         return timestampToDateTime(self.root.attrib['lastUpdate'])
 
     def get_stations(self):
@@ -105,7 +105,7 @@ class XmlParser:
 
 
 class StationListParserTypeA(XmlParser, StationListParser):
-    def get_last_communication_time_with_server(self, station):
+    def get_last_recorded_communication(self, station):
         return timestampToDateTime(self.find(station, 'lastCommWithServer'))
 
     def get_latest_update_time(self, station):
@@ -116,7 +116,7 @@ class StationListParserTypeA(XmlParser, StationListParser):
 
 
 class StationListParserTypeB(XmlParser, StationListParser):
-    def get_last_communication_time_with_server(self, station):
+    def get_last_recorded_communication(self, station):
         return None
 
     def get_latest_update_time(self, station):
@@ -129,10 +129,10 @@ class StationListParserTypeB(XmlParser, StationListParser):
 class StationListParserTypeC(JsonParser, StationListParser):
     STATUSES = (('In Service', 1,),)
 
-    def get_install_date(self, station):
+    def get_installation_date(self, station):
         return None
 
-    def get_last_communication_time_with_server(self, station):
+    def get_last_recorded_communication(self, station):
         return timestampToDateTime(self.find(station, 'lastCommunicationTime'))
 
     def get_latest_update_time(self, station):
@@ -156,7 +156,7 @@ class StationListParserTypeC(JsonParser, StationListParser):
     def get_station_name(self, station):
         return self.find(station, 'stationName')
 
-    def get_terminal_name(self, station):
+    def get_vicinity(self, station):
         return self.find(station, 'location')
 
     def is_locked(self, station):
@@ -223,11 +223,11 @@ class Command(BaseCommand):
             for s in parser.get_stations():
                 attrs = dict()
                 public_id = parser.get_public_id(s)
-                last_comm_with_server = parser.get_last_communication_time_with_server(s)
+                last_recorded_communication = parser.get_last_recorded_communication(s)
                 try:
                     station = Station.objects.get(city=city, public_id=public_id)
                     # Skip if we have a timestamp to compare against
-                    if last_comm_with_server and station.last_comm_with_server == last_comm_with_server:
+                    if last_recorded_communication and station.last_recorded_communication == last_recorded_communication:
                         self._increase_status_quo_count()
                         continue
                     # Else, update the station
@@ -237,29 +237,29 @@ class Command(BaseCommand):
                         'city_id': city.pk,
                         'name': parser.get_station_name(s),
                         'public_id': public_id,
-                        'terminal_name': parser.get_terminal_name(s),
+                        'vicinity': parser.get_vicinity(s),
                     })
 
                 attrs.update({
-                    'install_date': parser.get_install_date(s),
+                    'installation_date': parser.get_installation_date(s),
                     'installed': parser.is_installed(s),
-                    'last_comm_with_server': parser.get_last_communication_time_with_server(s),
-                    'lat': parser.get_latitude(s),
+                    'last_recorded_communication': parser.get_last_recorded_communication(s),
+                    'latitude': parser.get_latitude(s),
                     'locked': parser.is_locked(s),
-                    'long': parser.get_longitude(s),
+                    'longitude': parser.get_longitude(s),
                     'public': parser.is_public(s),
                     'removal_date': parser.get_removal_date(s),
                     'temporary': parser.is_temporary(s),
                 })
 
-                nb_bikes = parser.get_number_available_bikes(s)
-                nb_empty_docks = parser.get_number_empty_docks(s)
+                bikes = parser.get_number_available_bikes(s)
+                empty_docks = parser.get_number_empty_docks(s)
 
                 # Try to find if there has been changes since the last time
                 # this station was updated
                 latest_update_time = parser.get_latest_update_time(s)
                 if latest_update_time:
-                    if not station.last_comm_with_server:
+                    if not station.last_recorded_communication:
                         skip_station = True
                         for (attr, value,) in attrs.items():
                             if not getattr(station, attr) == value:
@@ -276,10 +276,12 @@ class Command(BaseCommand):
                 else:
                     # Too little information is available for this station,
                     # compare against the most recent update
-                    mru = Update.objects.filter(station=station).latest()
-                    if (mru.nb_bikes, mru.nb_empty_docks,) == (nb_bikes, nb_empty_docks,):
-                        self._increase_status_quo_count()
-                        continue
+                    mru_qs = Update.objects.filter(station=station)
+                    if mru_qs.exists():
+                        mru = mru_qs.latest()
+                        if (mru.bikes, mru.empty_docks,) == (bikes, empty_docks,):
+                            self._increase_status_quo_count()
+                            continue
 
                 for (k, v) in attrs.items():
                     assert k in station.__dict__, "The attribute '%s' must be an existing model field." % (k,)
@@ -295,13 +297,13 @@ class Command(BaseCommand):
                 else:
                     self._increase_created_count()
 
-                Update.objects.create(station=station, nb_bikes=nb_bikes,
-                    nb_empty_docks=nb_empty_docks,
+                Update.objects.create(station=station, bikes=bikes,
+                    empty_docks=empty_docks,
                     latest_update_time=latest_update_time,
                     raw_data=parser.get_raw_station(s))
 
-            last_update = parser.get_last_update_time()
-            city.last_update = last_update
+            last_recorded_update = parser.get_last_recorded_update_time()
+            city.last_recorded_update = last_recorded_update
             city.save()
 
             self.stdout.write("\nSuccessfully updated bike and dock counts for " +

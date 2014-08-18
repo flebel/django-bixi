@@ -1,4 +1,4 @@
-Django app for managing data from the Bixi public bicycle sharing system.
+Django app for managing data from the Bixi public bicycle sharing system, also known as Alta Bicycle Share in some US cities and Melbourne.
 
 It supports multiple cities out of the box.
 
