@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from bixi.models import City, Station, Update
 
 
-def timestampToDateTime(timestamp):
+def timestamp_to_datetime(timestamp):
     try:
         ts = int(timestamp)
     except TypeError, ValueError:
@@ -21,7 +21,7 @@ def timestampToDateTime(timestamp):
 
 class StationListParser:
     def get_installation_date(self, station):
-        return timestampToDateTime(self.find(station, 'installDate'))
+        return timestamp_to_datetime(self.find(station, 'installDate'))
 
     def get_last_recorded_communication(self, station):
         raise NotImplementedError
@@ -45,7 +45,7 @@ class StationListParser:
         return int(self.find(station, 'id'))
 
     def get_removal_date(self, station):
-        return timestampToDateTime(self.find(station, 'removalDate'))
+        return timestamp_to_datetime(self.find(station, 'removalDate'))
 
     def get_station_name(self, station):
         return self.find(station, 'name')
@@ -98,7 +98,7 @@ class XmlParser:
         return element.find(field_name).text
 
     def get_last_recorded_update_time(self):
-        return timestampToDateTime(self.root.attrib['lastUpdate'])
+        return timestamp_to_datetime(self.root.attrib['lastUpdate'])
 
     def get_stations(self):
         return self.root.findall('station')
@@ -106,10 +106,10 @@ class XmlParser:
 
 class StationListParserTypeA(XmlParser, StationListParser):
     def get_last_recorded_communication(self, station):
-        return timestampToDateTime(self.find(station, 'lastCommWithServer'))
+        return timestamp_to_datetime(self.find(station, 'lastCommWithServer'))
 
     def get_latest_update_time(self, station):
-        return timestampToDateTime(self.find(station, 'latestUpdateTime'))
+        return timestamp_to_datetime(self.find(station, 'latestUpdateTime'))
 
     def is_public(self, station):
         return self.find(station, 'public') == 'true'
@@ -133,7 +133,7 @@ class StationListParserTypeC(JsonParser, StationListParser):
         return None
 
     def get_last_recorded_communication(self, station):
-        return timestampToDateTime(self.find(station, 'lastCommunicationTime'))
+        return timestamp_to_datetime(self.find(station, 'lastCommunicationTime'))
 
     def get_latest_update_time(self, station):
         return None
