@@ -43,7 +43,7 @@ The `updatestations` management command allows you to create and update the stat
 Initial data
 ------------
 
-Upon running `syncdb`, cities that expose their bike stations data will be automatically inserted into the database. For the moment, only the following cities are included:
+Upon running `syncdb`, cities that expose their bike stations data will be automatically inserted into the database. The following cities are included in fixtures:
 
 * Boston
 * London
@@ -52,6 +52,7 @@ Upon running `syncdb`, cities that expose their bike stations data will be autom
 * Montreal
 * Ottawa
 * San Francisco Bay Area
+* Seattle
 * Toronto
 * Washington
 

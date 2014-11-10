@@ -74,22 +74,17 @@ class JsonParser:
     def find(self, element, field_name):
         return element.get(field_name)
 
-    def get_last_recorded_update_time(self):
-        execution_time = self.json.get('executionTime')
-        dt_format = '%Y-%m-%d %I:%M:%S %p'
-        return datetime.strptime(execution_time, dt_format)
-
     def get_raw_station(self, station):
         return unicode(station)
-
-    def get_stations(self):
-        return self.json.get('stationBeanList')
 
 
 class XmlParser:
     def __init__(self, data, *args, **kwargs):
         tree = ElementTree.parse(data)
         self.root = tree.getroot()
+
+    def _get_stations(self):
+        return self.root.findall('station')
 
     def get_raw_station(self, station):
         return ElementTree.tostring(station, method='xml')
@@ -99,9 +94,6 @@ class XmlParser:
 
     def get_last_recorded_update_time(self):
         return timestamp_to_datetime(self.root.attrib['lastUpdate'])
-
-    def get_stations(self):
-        return self.root.findall('station')
 
 
 class StationListParserTypeA(XmlParser, StationListParser):
@@ -129,11 +121,19 @@ class StationListParserTypeB(XmlParser, StationListParser):
 class StationListParserTypeC(JsonParser, StationListParser):
     STATUSES = (('In Service', 1,),)
 
+    def _get_stations(self):
+        return self.json.get('stationBeanList')
+
     def get_installation_date(self, station):
         return None
 
     def get_last_recorded_communication(self, station):
         return timestamp_to_datetime(self.find(station, 'lastCommunicationTime'))
+
+    def get_last_recorded_update_time(self):
+        execution_time = self.json.get('executionTime')
+        dt_format = '%Y-%m-%d %I:%M:%S %p'
+        return datetime.strptime(execution_time, dt_format)
 
     def get_latest_update_time(self, station):
         return None
@@ -170,6 +170,60 @@ class StationListParserTypeC(JsonParser, StationListParser):
 
     def is_temporary(self, station):
         return self.find(station, 'testStation')
+
+
+class StationListParserTypeD(JsonParser, StationListParser):
+    def _get_stations(self):
+        return self.json.get('stations')
+
+    def get_installation_date(self, station):
+        return None
+
+    def get_last_recorded_communication(self, station):
+        # TODO
+        return timestamp_to_datetime(self.find(station, 'lastCommunicationTime'))
+
+    def get_last_recorded_update_time(self):
+        return timestamp_to_datetime(self.json.get('timestamp'))
+
+    def get_latest_update_time(self, station):
+        return None
+
+    def get_latitude(self, station):
+        return self.find(station, 'la')
+
+    def get_longitude(self, station):
+        return self.find(station, 'lo')
+
+    def get_number_available_bikes(self, station):
+        return self.find(station, 'ba')
+
+    def get_number_empty_docks(self, station):
+        return self.find(station, 'da')
+
+    def get_removal_date(self, station):
+        return None
+
+    def get_station_name(self, station):
+        return self.find(station, 's')
+
+    def get_vicinity(self, station):
+        return None
+
+    def is_locked(self, station):
+        # TODO
+        return None
+
+    def is_installed(self, station):
+        # TODO: st?
+        return self.find(station, 'statusKey') == 1
+
+    def is_public(self, station):
+        # TODO
+        return None
+
+    def is_temporary(self, station):
+        return self.find(station, 't')
 
 
 class Command(BaseCommand):
@@ -220,7 +274,7 @@ class Command(BaseCommand):
 
             self._reset_counts()
 
-            for s in parser.get_stations():
+            for s in parser._get_stations():
                 attrs = dict()
                 public_id = parser.get_public_id(s)
                 last_recorded_communication = parser.get_last_recorded_communication(s)
