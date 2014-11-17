@@ -72,7 +72,7 @@ class JsonParser:
         self.json = json.loads(unicode_data)
 
     def find(self, element, field_name):
-        return element.get(field_name)
+        return element.get(field_name).strip()
 
     def get_last_recorded_update_time(self):
         execution_time = self.json.get('executionTime')
@@ -95,7 +95,7 @@ class XmlParser:
         return ElementTree.tostring(station, method='xml')
 
     def find(self, element, field_name):
-        return element.find(field_name).text
+        return element.find(field_name).text.strip()
 
     def get_last_recorded_update_time(self):
         return timestamp_to_datetime(self.root.attrib['lastUpdate'])
