@@ -163,7 +163,7 @@ class StationListParserTypeC(JsonParser, StationListParser):
         return None
 
     def is_installed(self, station):
-        return self.find(station, 'statusKey') == 1
+        return int(self.find(station, 'statusKey')) == 1
 
     def is_public(self, station):
         return None
