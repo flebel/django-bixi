@@ -2,7 +2,7 @@ import importlib
 import json
 import urllib2
 from datetime import datetime
-from xml.etree import ElementTree
+from xml.etree import cElementTree
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -88,11 +88,11 @@ class JsonParser:
 
 class XmlParser:
     def __init__(self, data, *args, **kwargs):
-        tree = ElementTree.parse(data)
+        tree = cElementTree.parse(data)
         self.root = tree.getroot()
 
     def get_raw_station(self, station):
-        return ElementTree.tostring(station, method='xml')
+        return cElementTree.tostring(station, method='xml')
 
     def find(self, element, field_name):
         value = element.find(field_name).text
