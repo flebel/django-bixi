@@ -2,14 +2,14 @@ import importlib
 import json
 import urllib2
 from datetime import datetime
-from xml.etree import ElementTree
+from xml.etree import cElementTree
 
 from django.core.management.base import BaseCommand, CommandError
 
 from bixi.models import City, Station, Update
 
 
-def timestampToDateTime(timestamp):
+def timestamp_to_datetime(timestamp):
     try:
         ts = int(timestamp)
     except TypeError, ValueError:
@@ -21,7 +21,7 @@ def timestampToDateTime(timestamp):
 
 class StationListParser:
     def get_installation_date(self, station):
-        return timestampToDateTime(self.find(station, 'installDate'))
+        return timestamp_to_datetime(self.find(station, 'installDate'))
 
     def get_last_recorded_communication(self, station):
         raise NotImplementedError
@@ -45,7 +45,7 @@ class StationListParser:
         return int(self.find(station, 'id'))
 
     def get_removal_date(self, station):
-        return timestampToDateTime(self.find(station, 'removalDate'))
+        return timestamp_to_datetime(self.find(station, 'removalDate'))
 
     def get_station_name(self, station):
         return self.find(station, 'name')
@@ -72,7 +72,7 @@ class JsonParser:
         self.json = json.loads(unicode_data)
 
     def find(self, element, field_name):
-        return element.get(field_name)
+        return element.get(field_name).strip()
 
     def get_last_recorded_update_time(self):
         execution_time = self.json.get('executionTime')
@@ -88,17 +88,19 @@ class JsonParser:
 
 class XmlParser:
     def __init__(self, data, *args, **kwargs):
-        tree = ElementTree.parse(data)
+        tree = cElementTree.parse(data)
         self.root = tree.getroot()
 
     def get_raw_station(self, station):
-        return ElementTree.tostring(station, method='xml')
+        return cElementTree.tostring(station, method='xml')
 
     def find(self, element, field_name):
-        return element.find(field_name).text
+        value = element.find(field_name).text
+        if value:
+            return value.strip()
 
     def get_last_recorded_update_time(self):
-        return timestampToDateTime(self.root.attrib['lastUpdate'])
+        return timestamp_to_datetime(self.root.attrib['lastUpdate'])
 
     def get_stations(self):
         return self.root.findall('station')
@@ -106,10 +108,10 @@ class XmlParser:
 
 class StationListParserTypeA(XmlParser, StationListParser):
     def get_last_recorded_communication(self, station):
-        return timestampToDateTime(self.find(station, 'lastCommWithServer'))
+        return timestamp_to_datetime(self.find(station, 'lastCommWithServer'))
 
     def get_latest_update_time(self, station):
-        return timestampToDateTime(self.find(station, 'latestUpdateTime'))
+        return timestamp_to_datetime(self.find(station, 'latestUpdateTime'))
 
     def is_public(self, station):
         return self.find(station, 'public') == 'true'
@@ -133,7 +135,7 @@ class StationListParserTypeC(JsonParser, StationListParser):
         return None
 
     def get_last_recorded_communication(self, station):
-        return timestampToDateTime(self.find(station, 'lastCommunicationTime'))
+        return timestamp_to_datetime(self.find(station, 'lastCommunicationTime'))
 
     def get_latest_update_time(self, station):
         return None
@@ -163,7 +165,7 @@ class StationListParserTypeC(JsonParser, StationListParser):
         return None
 
     def is_installed(self, station):
-        return self.find(station, 'statusKey') == 1
+        return int(self.find(station, 'statusKey')) == 1
 
     def is_public(self, station):
         return None
