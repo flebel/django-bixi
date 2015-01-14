@@ -95,7 +95,9 @@ class XmlParser:
         return ElementTree.tostring(station, method='xml')
 
     def find(self, element, field_name):
-        return element.find(field_name).text.strip()
+        value = element.find(field_name).text
+        if value:
+            return value.strip()
 
     def get_last_recorded_update_time(self):
         return timestamp_to_datetime(self.root.attrib['lastUpdate'])
