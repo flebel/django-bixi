@@ -10,7 +10,7 @@ class AvailableCityManager(models.Manager):
 
 
 class City(models.Model):
-    PARSER_TYPES_VALUES = ('A', 'B', 'C',)
+    PARSER_TYPES_VALUES = ('A', 'B', 'C', 'D',)
     PARSER_TYPES = [(val[1], val[0],) for val in enumerate(PARSER_TYPES_VALUES)]
 
     code = models.SlugField(
@@ -71,11 +71,11 @@ class Station(models.Model):
     )
     latitude = models.FloatField()
     longitude = models.FloatField()
-    installed = models.BooleanField(help_text='Whether or not this station is currently deployed.')
+    installed = models.NullBooleanField(help_text='Whether or not this station is currently deployed.')
     locked = models.NullBooleanField(help_text='Whether or not this station is accessible.')
     installation_date = models.DateTimeField(null=True)
     removal_date = models.DateTimeField(null=True)
-    temporary = models.BooleanField(help_text='Whether or not this station is permanent.')
+    temporary = models.NullBooleanField(help_text='Whether or not this station is permanent.')
     public = models.NullBooleanField(help_text='Whether or not this station is available for public use.')
 
     objects = models.Manager()
