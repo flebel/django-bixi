@@ -1,14 +1,13 @@
-import errno
 import importlib
 import json
 import urllib2
 from datetime import datetime
-from socket import error as SocketError
 from xml.etree import cElementTree
 
 from django.core.management.base import BaseCommand, CommandError
 
 from bixi.models import City, Station, Update
+from bixi.utils import forgiving_urlopen
 
 
 def timestamp_to_datetime(timestamp, ms=False):
@@ -189,19 +188,7 @@ class StationListParserTypeD(XmlParser, StationListParser):
         public_id = self.get_public_id(station)
         if not public_id in self._station_details_cache:
             url = self.station_details_url % (public_id,)
-            # Be forgiving of network errors
-            data = None
-            for attempt in range(5):
-                try:
-                    data = urllib2.urlopen(url)
-                    break
-                except urllib2.HTTPError:
-                    continue
-                except SocketError as e:
-                    # Only ignore ECONNRESET
-                    if e.errno != errno.ECONNRESET:
-                        raise
-                    continue
+            data = forgiving_urlopen(url)
             root = cElementTree.parse(data).getroot()
             self._station_details_cache[public_id] = {el.tag: el.text for el in root}
         return self._station_details_cache[public_id]

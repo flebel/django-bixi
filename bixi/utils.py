@@ -1,4 +1,8 @@
+import errno
+import urllib2
+
 from math import radians, cos, sin, asin, sqrt
+from socket import error as SocketError
 
 
 def distance(lat1, long1, lat2, long2):
@@ -15,4 +19,19 @@ def distance(lat1, long1, lat2, long2):
     a = sin(dlat / 2) ** 2 + cos(rlat1) * cos(rlat2) * sin(dlon / 2) ** 2
     c = 2 * asin(sqrt(a))
     return 6367 * c * 1000
+
+def forgiving_urlopen(url, attempts=5):
+    data = None
+    for attempt in range(attempts):
+        try:
+            data = urllib2.urlopen(url)
+            break
+        except urllib2.HTTPError:
+            continue
+        except SocketError as e:
+            # Only ignore ECONNRESET
+            if e.errno != errno.ECONNRESET:
+                raise
+            continue
+    return data
 
