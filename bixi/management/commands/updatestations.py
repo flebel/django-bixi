@@ -178,11 +178,10 @@ class StationListParserTypeC(JsonParser, StationListParser):
 
 
 class StationListParserTypeD(XmlParser, StationListParser):
-    station_details_url = 'http://www.dublinbikes.ie/service/stationdetails/dublin/%d'
-
-    def __init__(self, data, *args, **kwargs):
+    def __init__(self, data, station_details_url, *args, **kwargs):
         super(StationListParserTypeD, self).__init__(data, *args, **kwargs)
         self._station_details_cache = {}
+        self.station_details_url = station_details_url
 
     def _get_station_details(self, station):
         public_id = self.get_public_id(station)
@@ -311,7 +310,7 @@ class Command(BaseCommand):
 
             parsers = {City.parser_code_to_value(value): getattr(parsers_module, 'StationListParserType' + value) for value in City.PARSER_TYPES_VALUES}
             try:
-                parser = parsers[city.parser_type](data)
+                parser = parsers[city.parser_type](data, city.station_url)
             except IndexError:
                 raise NotImplementedError("The parser for '%s' hasn't been implemented yet." % (city.name,))
 

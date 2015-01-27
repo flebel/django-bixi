@@ -19,6 +19,7 @@ class City(models.Model):
     )
     name = models.CharField(max_length=200)
     url = models.URLField(help_text='JSON or XML URL containing station updates. Both HTTP and HTTPS are supported.')
+    station_url = models.URLField(help_text="Optional JSON or XML URL containing individual station updates for supported parsers. Both HTTP and HTTPS are supported.", null=True)
     parser_type = models.PositiveSmallIntegerField(
         choices=PARSER_TYPES,
         default=0,
