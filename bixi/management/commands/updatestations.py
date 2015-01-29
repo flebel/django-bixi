@@ -72,7 +72,9 @@ class JsonParser:
         self.json = json.loads(unicode_data)
 
     def find(self, element, field_name):
-        return element.get(field_name).strip()
+        value = element.get(field_name)
+        if value:
+            return value.strip()
 
     def get_last_recorded_update_time(self):
         execution_time = self.json.get('executionTime')
