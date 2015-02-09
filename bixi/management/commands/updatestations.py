@@ -7,21 +7,26 @@ from xml.etree import cElementTree
 from django.core.management.base import BaseCommand, CommandError
 
 from bixi.models import City, Station, Update
+from bixi.utils import forgiving_urlopen
 
 
-def timestamp_to_datetime(timestamp):
+def timestamp_to_datetime(timestamp, ms=False):
     try:
         ts = int(timestamp)
     except TypeError, ValueError:
         ts = 0
     if ts:
-        return datetime.fromtimestamp(ts / 1e3)
+        if ms:
+            ts_seconds = ts / 1e3
+        else:
+            ts_seconds = ts
+        return datetime.utcfromtimestamp(ts_seconds)
     return None
 
 
-class StationListParser:
+class StationListParser(object):
     def get_installation_date(self, station):
-        return timestamp_to_datetime(self.find(station, 'installDate'))
+        return timestamp_to_datetime(self.find(station, 'installDate'), ms=True)
 
     def get_last_recorded_communication(self, station):
         raise NotImplementedError
@@ -45,7 +50,7 @@ class StationListParser:
         return int(self.find(station, 'id'))
 
     def get_removal_date(self, station):
-        return timestamp_to_datetime(self.find(station, 'removalDate'))
+        return timestamp_to_datetime(self.find(station, 'removalDate'), ms=True)
 
     def get_station_name(self, station):
         return self.find(station, 'name')
@@ -66,7 +71,7 @@ class StationListParser:
         return self.find(station, 'temporary') == 'true'
 
 
-class JsonParser:
+class JsonParser(object):
     def __init__(self, data, *args, **kwargs):
         unicode_data = data.read().decode('unicode-escape')
         self.json = json.loads(unicode_data)
@@ -88,7 +93,7 @@ class JsonParser:
         return self.json.get('stationBeanList')
 
 
-class XmlParser:
+class XmlParser(object):
     def __init__(self, data, *args, **kwargs):
         tree = cElementTree.parse(data)
         self.root = tree.getroot()
@@ -102,7 +107,7 @@ class XmlParser:
             return value.strip()
 
     def get_last_recorded_update_time(self):
-        return timestamp_to_datetime(self.root.attrib['lastUpdate'])
+        return timestamp_to_datetime(self.root.attrib['lastUpdate'], ms=True)
 
     def get_stations(self):
         return self.root.findall('station')
@@ -110,10 +115,10 @@ class XmlParser:
 
 class StationListParserTypeA(XmlParser, StationListParser):
     def get_last_recorded_communication(self, station):
-        return timestamp_to_datetime(self.find(station, 'lastCommWithServer'))
+        return timestamp_to_datetime(self.find(station, 'lastCommWithServer'), ms=True)
 
     def get_latest_update_time(self, station):
-        return timestamp_to_datetime(self.find(station, 'latestUpdateTime'))
+        return timestamp_to_datetime(self.find(station, 'latestUpdateTime'), ms=True)
 
     def is_public(self, station):
         return self.find(station, 'public') == 'true'
@@ -137,7 +142,7 @@ class StationListParserTypeC(JsonParser, StationListParser):
         return None
 
     def get_last_recorded_communication(self, station):
-        return timestamp_to_datetime(self.find(station, 'lastCommunicationTime'))
+        return timestamp_to_datetime(self.find(station, 'lastCommunicationTime'), ms=True)
 
     def get_latest_update_time(self, station):
         return None
@@ -174,6 +179,97 @@ class StationListParserTypeC(JsonParser, StationListParser):
 
     def is_temporary(self, station):
         return self.find(station, 'testStation')
+
+
+class StationListParserTypeD(XmlParser, StationListParser):
+    def __init__(self, data, station_details_url, *args, **kwargs):
+        super(StationListParserTypeD, self).__init__(data, *args, **kwargs)
+        self._station_details_cache = {}
+        self.station_details_url = station_details_url
+
+    def _get_station_details(self, station):
+        public_id = self.get_public_id(station)
+        if not public_id in self._station_details_cache:
+            url = self.station_details_url % (public_id,)
+            data = forgiving_urlopen(url)
+            root = cElementTree.parse(data).getroot()
+            self._station_details_cache[public_id] = {el.tag: el.text for el in root}
+        return self._station_details_cache[public_id]
+
+    def find(self, element, field_name):
+        return element.attrib.get(field_name).strip()
+
+    def find_station(self, station, field_name):
+        station_details = self._get_station_details(station)
+        if station_details:
+            return station_details[field_name]
+
+    def get_installation_date(self, station):
+        return None
+
+    def get_last_recorded_communication(self, station):
+        return None
+
+    def get_latest_update_time(self, station):
+        return timestamp_to_datetime(self.find_station(station, 'updated'), ms=False)
+
+    def get_latitude(self, station):
+        return self.find(station, 'lat')
+
+    def get_last_recorded_update_time(self):
+        stations = self.get_stations()
+        latest_updated = None
+        for station in self._station_details_cache.values():
+            latest_updated = max(station['updated'], latest_updated)
+        if latest_updated:
+            return timestamp_to_datetime(latest_updated, ms=False)
+
+    def get_longitude(self, station):
+        return self.find(station, 'lng')
+
+    def get_number_available_bikes(self, station):
+        return self.find_station(station, 'available')
+
+    def get_number_empty_docks(self, station):
+        return self.find_station(station, 'free')
+
+    def get_public_id(self, station):
+        return int(self.find(station, 'number'))
+
+    def get_raw_station(self, station):
+        details = cElementTree.tostring(station, method='xml')
+        station_details = self._get_station_details(station)
+        if station_details:
+            # `details` is XML and ended with a line feed
+            # `station_details` is JSON
+            return details + unicode(station_details)
+        return details
+
+    def get_removal_date(self, station):
+        return None
+
+    def get_stations(self):
+        return self.root.find('markers').findall('marker')
+
+    def get_station_name(self, station):
+        return self.find(station, 'name')
+
+    def get_vicinity(self, station):
+        return self.find(station, 'address')
+
+    def is_locked(self, station):
+        return None
+
+    def is_installed(self, station):
+        station_open = self.find_station(station, 'open')
+        if not station_open is None:
+            return int(station_open) == 1
+
+    def is_public(self, station):
+        return None
+
+    def is_temporary(self, station):
+        return None
 
 
 class Command(BaseCommand):
@@ -218,7 +314,7 @@ class Command(BaseCommand):
 
             parsers = {City.parser_code_to_value(value): getattr(parsers_module, 'StationListParserType' + value) for value in City.PARSER_TYPES_VALUES}
             try:
-                parser = parsers[city.parser_type](data)
+                parser = parsers[city.parser_type](data, city.station_url)
             except IndexError:
                 raise NotImplementedError("The parser for '%s' hasn't been implemented yet." % (city.name,))
 

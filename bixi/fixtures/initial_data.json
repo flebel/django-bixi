@@ -106,6 +106,19 @@
         },
         "model": "bixi.city",
         "pk": 9
+    },
+    {
+        "fields": {
+            "active": true,
+            "code": "dublin",
+            "last_recorded_update": null,
+            "name": "Dublin",
+            "parser_type": 3,
+            "url": "http://www.dublinbikes.ie/service/carto",
+            "station_url": "http://www.dublinbikes.ie/service/stationdetails/dublin/%d"
+        },
+        "model": "bixi.city",
+        "pk": 10
     }
 
 ]
