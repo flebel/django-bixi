@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='bixi',
-      version='1.1',
+      version='1.2',
       description='Django app for managing data from the Bixi public bicycle sharing system.',
       author='Francois Lebel',
       author_email='francoislebel@gmail.com',
